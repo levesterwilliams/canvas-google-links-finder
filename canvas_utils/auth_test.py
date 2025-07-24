@@ -2,9 +2,6 @@ import os
 import json
 import unittest
 from unittest.mock import patch, mock_open
-import sys
-
-# Import the functions we want to test
 from auth import load_json_file, get_cred_json, get_cred_env_var, get_token, headers
 
 
@@ -32,11 +29,14 @@ class TestAuth(unittest.TestCase):
         result = get_cred_json("cred.json")
         self.assertEqual(result["prod"], "abc123")
 
-    @patch("auth.load_json_file", side_effect=FileNotFoundError)
-    def test_get_cred_json_file_not_found(self, mock_loader):
-        with patch("sys.exit") as mock_exit:
+    def test_get_cred_json_file_not_found(self):
+        with self.assertRaises(FileNotFoundError):
             get_cred_json("missing.json")
-            mock_exit.assert_called_once_with(1)
+
+    def test_get_cred_json_invalid_json(self):
+        with patch("builtins.open", mock_open(read_data="{bad_json:}")):
+            with self.assertRaises(RuntimeError):
+               get_cred_json("bad.json")
 
     # --- get_cred_env_var tests ---
     @patch.dict(os.environ, {"CANVAS_API_CRED": json.dumps({"prod": "envtoken"})})
@@ -46,15 +46,13 @@ class TestAuth(unittest.TestCase):
 
     @patch.dict(os.environ, {}, clear=True)
     def test_get_cred_env_var_missing(self):
-        with patch("sys.exit") as mock_exit:
+        with self.assertRaises(RuntimeError):
             get_cred_env_var()
-            mock_exit.assert_called_once_with(1)
 
     @patch.dict(os.environ, {"CANVAS_API_CRED": "invalid-json"})
     def test_get_cred_env_var_invalid_json(self):
-        with patch("sys.exit") as mock_exit:
+        with self.assertRaises(RuntimeError):
             get_cred_env_var()
-            mock_exit.assert_called_once_with(1)
 
     # --- get_token tests ---
     @patch("auth.get_cred_env_var", return_value={"prod": "envtoken"})
@@ -75,9 +73,8 @@ class TestAuth(unittest.TestCase):
 
     def test_headers_missing_key(self):
         token = {"test": "abc123"}
-        with patch("sys.exit") as mock_exit:
+        with self.assertRaises(KeyError):
             headers(token, "prod")
-            mock_exit.assert_called_once_with(1)
 
 
 if __name__ == "__main__":

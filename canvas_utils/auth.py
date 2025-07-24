@@ -87,7 +87,7 @@ def load_json_file(json_file: str) -> dict:
 
 def get_cred_json(json_file_path: str) -> dict:
     """
-    Retrieves an API token from a JSONfile.
+    Retrieves an API credentials from a JSON file.
 
     Parameters:
     -----------
@@ -96,29 +96,8 @@ def get_cred_json(json_file_path: str) -> dict:
     Returns:
     --------
     dict : An API token from either an environment variable or a json file.
-
-    Raises:
-    -------
-    FileNotFoundError
-        If the file does not exist.
-    RuntimeError
-        If credentials are invalid.
-    Exception
-        If an error occurs.
     """
-    cred = None
-    try:
-        cred = load_json_file(json_file_path)
-    except FileNotFoundError as e:
-        print(f"The credentials file {json_file_path} not found")
-        sys.exit(1)
-    except RuntimeError:
-        print(f"The credentials file {json_file_path} contains invalid JSON.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        sys.exit(1)
-    return cred
+    return load_json_file(json_file_path)
 
 
 def get_cred_env_var() -> dict:
@@ -143,16 +122,16 @@ def get_cred_env_var() -> dict:
     Exception
         If an error occurs.
     """
-    cred = None
+    env_value = os.getenv('CANVAS_API_CRED')
+    if env_value is None:
+        raise RuntimeError("Environment variable CANVAS_API_CRED is "
+                           "missing.")
     try:
-        cred = json.loads(os.getenv('CANVAS_API_CRED'))
-    except json.JSONDecodeError:
-        print(f"Contains invalid JSON.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        sys.exit(1)
-    return cred
+        return json.loads(env_value)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(
+            "Environment variable CANVAS_API_CRED contains invalid JSON.") \
+            from e
 
 def get_token(path: str = None) -> dict:
     """Gets the API token from either an environment variable or a json
@@ -191,9 +170,6 @@ def headers(token: dict, server_type: str) -> dict:
         headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer {}'.format(token[server_type])}
     except KeyError as e:
-        print(f"Token dictionary does not contain server type '{server_type}'.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        sys.exit(1)
+        raise KeyError(f"Token dictionary does not contain server type "
+               f"'{server_type}'.") from e
     return headers
