@@ -20,7 +20,5 @@ if __name__ == "__main__":
     finder = CanvasDiscussionFinder(server_url['LPS_Test'], api_headers)
     google_links = finder.find_google_links(course_id)
 
-    for topic, links in google_links.items():
-        print(f"Topic: {topic}")
-        for link in links:
-            print(f"  {link}")
+    for link in google_links:
+        print(f"Discussions, {link}")
