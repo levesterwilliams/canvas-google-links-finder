@@ -1,3 +1,9 @@
+#
+# Author: Levester Williams
+# Date: 20 July 2025
+# auth.py
+#
+
 import os
 import json
 import unittest

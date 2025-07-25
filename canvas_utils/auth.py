@@ -50,7 +50,6 @@ Notes
 
 import json
 import os
-import sys
 
 def load_json_file(json_file: str) -> dict:
     """Loads credentials from an external JSON file.
