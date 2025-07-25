@@ -4,12 +4,20 @@ from canvas_base_finder import CanvasGoogleLinkFinderBase
 
 
 class CanvasDiscussionFinder(CanvasGoogleLinkFinderBase):
-    """
-    Finds Google links in Canvas Discussion posts
-    """
 
     def get_content_items(self, course_id: str) -> list[tuple]:
-        """Fetch discussion topics"""
+        """
+        Returns a list of topics found in course.
+
+        Parameters:
+        ----------
+        course_id (str): The id of course.
+
+        Returns:
+        -------
+        list[tuple[str, str]]: A list featuring a tuple of topic id and topic
+            name.
+        """
         url = f"{self.server_url}/api/v1/courses/{course_id}/discussion_topics?per_page=10"
         topics_list = []
         while url:
@@ -30,9 +38,10 @@ class CanvasDiscussionFinder(CanvasGoogleLinkFinderBase):
         return topics_list
 
     def get_item_detail(self, course_id: str, topic_id: str) -> str:
-        """Fetch full discussion content (initial post + replies)"""
         url = f"{self.server_url}/api/v1/courses/{course_id}/discussion_topics/{topic_id}/view"
         response = requests.get(url, headers=self._headers)
+        # Need function to get full topic view!!!
+        print(response.json())
         if response.status_code == 200:
             topic_view = response.json()
             # Combine all message text into one string for regex scan

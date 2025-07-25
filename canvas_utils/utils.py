@@ -1,5 +1,11 @@
+#
+# Author: Levester Williams
+# Date: 24 July 2025
+# util.py
+#
+
 import requests
-import json
+
 
 def set_course_name(server_url: str, headers: str, course_id: str) -> str:
     """Sets the name of the course.
@@ -18,6 +24,8 @@ def set_course_name(server_url: str, headers: str, course_id: str) -> str:
     if response.status_code == 200:
         course = response.json()
         course = course.get('name', 'Unknown Course')
+    elif response.status_code == 403:
+        return ""
     else:
         print(f"Error receiving course name: {response.status_code},"
               f" {response.text}")

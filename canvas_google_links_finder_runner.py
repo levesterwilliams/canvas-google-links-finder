@@ -13,20 +13,13 @@ if __name__ == "__main__":
         # path location to locally stored token
         sys.exit(1)
     api_headers = headers(token, "LPS_Test")
-
-    # Canvas server and course
     course_id = "1854667"
     course_name = set_course_name(server_url['LPS_Test'], api_headers,
                                   course_id)
     print(f"Current course name is {course_name}.")
-
-    # Initialize the discussion finder
     finder = CanvasDiscussionFinder(server_url['LPS_Test'], api_headers)
-
-    # Run Google link search
     google_links = finder.find_google_links(course_id)
 
-    # Output results
     for topic, links in google_links.items():
         print(f"Topic: {topic}")
         for link in links:
