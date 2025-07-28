@@ -5,7 +5,8 @@ from canvas_base_finder import CanvasGoogleLinkFinderBase
 
 class CanvasDiscussionFinder(CanvasGoogleLinkFinderBase):
 
-    def get_content_items(self, course_id: str) -> tuple[list[tuple[int, str]], str]:
+    def get_content_items(self, course_id: str) -> tuple[
+        list[tuple[int, str]], str]:
         """
         Returns a list of topics and author messages found in course's Canvas
             Discussion Topics.
@@ -37,7 +38,8 @@ class CanvasDiscussionFinder(CanvasGoogleLinkFinderBase):
                     print("Invalid JSON in discussion topics response")
                     break
             else:
-                print(f"Error fetching discussion topics: {response.status_code}")
+                print(
+                    f"Error fetching discussion topics: {response.status_code}")
                 break
         messages_from_topic_author = " ".join(messages)
         topic_list_and_messages = (topics_list, messages_from_topic_author)
@@ -46,21 +48,28 @@ class CanvasDiscussionFinder(CanvasGoogleLinkFinderBase):
     def get_item_detail(self, course_id: str, topic_id: str) -> str:
         full_topic_view_url = f"{self.server_url}/api/v1/courses/{course_id}/discussion_topics/{topic_id}/view"
         response = requests.get(full_topic_view_url, headers=self._headers)
-        # Need function to get full topic view!!!
         print(response.json())
         if response.status_code == 200:
-            full_topic_view = response.json()
-            # Combine all message text into one string for regex scan
-            messages = []
-            for entry in full_topic_view.get('view', []):
-                messages.append(entry.get('message', ""))
-                print(f'Topic {topic_id} contains the message: {messages}')
-            return " ".join(messages)
+            try:
+                full_topic_view = response.json()
+            except json.JSONDecodeError:
+                print("Invalid JSON in discussion topics response")
+                return ""
         elif response.status_code == 403:
             return ""
         else:
-            print(f"Error fetching discussion topic {topic_id}: {response.status_code}")
+            print(
+                f"Error fetching discussion topic {topic_id}: {response.status_code}")
             return ""
+            # Combine all message text into one string for regex scan
+        messages = []
+        # Flatten the full topic to gather threaded replies
+        for entry in full_topic_view.get('view', []):
+            messages.append(entry.get('message', ""))
+            for replies in entry.get('replies', []):
+                messages.append(replies.get('message', ""))
+            print(f'Topic {topic_id} contains the message: {messages}')
+        return " ".join(messages)
 
     def auxiliary_function(self, authors_messages: str) -> list:
         """
@@ -78,4 +87,3 @@ class CanvasDiscussionFinder(CanvasGoogleLinkFinderBase):
         """
         links = self.extract_google_links(authors_messages)
         return links
-
