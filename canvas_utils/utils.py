@@ -5,6 +5,7 @@
 #
 
 import requests
+import json
 
 
 def set_course_name(server_url: str, headers: str, course_id: str) -> str:
@@ -22,7 +23,11 @@ def set_course_name(server_url: str, headers: str, course_id: str) -> str:
     response = requests.get(course_url, headers=headers)
     course = None
     if response.status_code == 200:
-        course = response.json()
+        try:
+            course = response.json()
+        except json.JSONDecodeError:
+            print("Invalid JSON in course get response")
+            return ""
         course = course.get('name', 'Unknown Course')
     elif response.status_code == 403:
         return ""
